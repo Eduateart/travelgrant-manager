@@ -3,11 +3,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { setUser } from "@/lib/stgs/store";
 import { ROLE_LABELS, type Role } from "@/lib/stgs/types";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
+import { GraduationCap, ShieldCheck, Wallet, Users, FileText } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -27,6 +27,14 @@ const ROLE_DESCRIPTIONS: Record<Role, string> = {
   hr: "View approved and archived records",
 };
 
+const ROLE_ICONS: Record<Role, React.ComponentType<{ className?: string }>> = {
+  applicant: FileText,
+  council: Users,
+  dean: ShieldCheck,
+  finance: Wallet,
+  hr: GraduationCap,
+};
+
 function LoginPage() {
   const navigate = useNavigate();
   const [role, setRole] = useState<Role>("applicant");
@@ -43,65 +51,125 @@ function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-white flex flex-col">
       <Toaster richColors position="top-right" />
-      <div className="w-full max-w-5xl grid lg:grid-cols-2 gap-8 items-center">
-        <div className="space-y-4 px-4">
-          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-            FINKI · Team 19
+
+      {/* Top brand bar */}
+      <header className="bg-primary text-primary-foreground border-b">
+        <div className="mx-auto max-w-[1400px] flex items-center justify-between px-8 py-3">
+          <div className="flex items-center gap-3">
+            <div className="h-11 w-11 rounded-md bg-white text-primary grid place-items-center font-extrabold text-lg shadow-sm">
+              F
+            </div>
+            <div className="leading-tight">
+              <div className="font-extrabold text-lg tracking-wide">FINKI</div>
+              <div className="text-[11px] uppercase tracking-[0.2em] text-white/80">STGS</div>
+            </div>
           </div>
-          <h1 className="text-4xl font-bold tracking-tight text-foreground">
-            Scientific Travel Grant System
-          </h1>
-          <p className="text-muted-foreground">
-            A unified workflow for scientific travel grants — from application
-            to reconciliation. Select your institutional role to continue.
-          </p>
-          <div className="grid grid-cols-2 gap-2 pt-2 text-xs text-muted-foreground">
-            <div>• Multi-level approvals</div>
-            <div>• Budget enforcement</div>
-            <div>• 48-hour reporting</div>
-            <div>• Automated reconciliation</div>
+          <div className="text-xs text-white/80 hidden sm:block">
+            Faculty of Computer Science and Engineering · Ss. Cyril and Methodius University
           </div>
         </div>
+      </header>
 
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle>Sign in</CardTitle>
-            <CardDescription>Demo login — pick a role to enter the system.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1">
-              <Label>Full name</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Dr. Ana Petrovska" />
-            </div>
-            <div className="space-y-2">
-              <Label>Role</Label>
-              <div className="grid gap-2">
-                {(Object.keys(ROLE_LABELS) as Role[]).map((r) => (
-                  <button
-                    key={r}
-                    type="button"
-                    onClick={() => setRole(r)}
-                    className={`flex items-start justify-between rounded-md border p-3 text-left transition ${
-                      role === r
-                        ? "border-primary bg-primary/5 ring-1 ring-primary"
-                        : "border-border hover:bg-accent"
-                    }`}
-                  >
-                    <div>
-                      <div className="font-medium text-sm">{ROLE_LABELS[r]}</div>
-                      <div className="text-xs text-muted-foreground">{ROLE_DESCRIPTIONS[r]}</div>
-                    </div>
-                    <div className={`h-4 w-4 rounded-full border-2 mt-1 ${role === r ? "border-primary bg-primary" : "border-muted-foreground/40"}`} />
-                  </button>
-                ))}
+      {/* Main centered card */}
+      <div className="flex-1 flex items-center justify-center px-6 py-12 bg-gradient-to-br from-white via-blue-50/40 to-blue-100/30">
+        <div className="w-full max-w-[1100px] bg-white rounded-xl border shadow-xl overflow-hidden grid lg:grid-cols-[1.05fr_1fr]">
+          {/* Left info panel */}
+          <div className="bg-primary text-primary-foreground p-10 lg:p-12 flex flex-col justify-between">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[11px] font-medium uppercase tracking-wider">
+                Team 19 · 2026
               </div>
+              <h1 className="mt-6 text-3xl xl:text-4xl font-bold tracking-tight leading-tight">
+                Scientific Travel<br />Grant System
+              </h1>
+              <p className="mt-4 text-sm text-white/85 max-w-md">
+                A unified institutional workflow for scientific travel grants —
+                from application through council and dean approval, finance
+                disbursement, and post-travel reconciliation.
+              </p>
             </div>
-            <Button className="w-full" onClick={login}>Enter STGS</Button>
-          </CardContent>
-        </Card>
+            <div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-3 text-[13px] text-white/90">
+              <div>• Multi-level approvals</div>
+              <div>• Budget enforcement</div>
+              <div>• 48-hour reporting</div>
+              <div>• Automated reconciliation</div>
+              <div>• Per-diem calculation</div>
+              <div>• Full audit history</div>
+            </div>
+          </div>
+
+          {/* Right form panel */}
+          <div className="p-10 lg:p-12">
+            <div className="mb-6">
+              <h2 className="text-2xl font-semibold tracking-tight text-foreground">Sign in to STGS</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Select your institutional role to continue.
+              </p>
+            </div>
+
+            <div className="space-y-5">
+              <div className="space-y-1.5">
+                <Label htmlFor="fullname" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Full name
+                </Label>
+                <Input
+                  id="fullname"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Dr. Ana Petrovska"
+                  className="h-10"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Role
+                </Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {(Object.keys(ROLE_LABELS) as Role[]).map((r) => {
+                    const Icon = ROLE_ICONS[r];
+                    const active = role === r;
+                    return (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => setRole(r)}
+                        className={`flex items-start gap-3 rounded-md border p-3 text-left transition ${
+                          active
+                            ? "border-primary bg-primary/5 ring-1 ring-primary"
+                            : "border-border hover:bg-accent hover:border-primary/30"
+                        }`}
+                      >
+                        <div className={`h-8 w-8 rounded-md grid place-items-center shrink-0 ${active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-medium text-sm text-foreground">{ROLE_LABELS[r]}</div>
+                          <div className="text-[11px] text-muted-foreground leading-snug">{ROLE_DESCRIPTIONS[r]}</div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <Button className="w-full h-10" onClick={login}>Enter STGS</Button>
+              <p className="text-[11px] text-center text-muted-foreground">
+                Demo environment · Data persists in your browser only
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <footer className="border-t bg-white">
+        <div className="mx-auto max-w-[1400px] px-8 py-3 text-[11px] text-muted-foreground flex justify-between">
+          <div>© 2026 FINKI · Faculty of Computer Science and Engineering</div>
+          <div>STGS v1.0 · Internal Use</div>
+        </div>
+      </footer>
     </div>
   );
 }

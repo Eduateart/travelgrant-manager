@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
+import { LogOut } from "lucide-react";
 import { getUser, setUser, useStore } from "@/lib/stgs/store";
 import { ROLE_LABELS, type Role } from "@/lib/stgs/types";
 import { ApplicantView } from "@/components/stgs/ApplicantView";
@@ -18,12 +19,14 @@ export const Route = createFileRoute("/app")({
 function AppPage() {
   const navigate = useNavigate();
   const user = useStore(() => getUser());
+  const [mounted, setMounted] = useState(false);
 
+  useEffect(() => { setMounted(true); }, []);
   useEffect(() => {
-    if (!user) navigate({ to: "/" });
-  }, [user, navigate]);
+    if (mounted && !user) navigate({ to: "/" });
+  }, [mounted, user, navigate]);
 
-  if (!user) return null;
+  if (!mounted || !user) return null;
 
   function logout() {
     setUser(null);
@@ -31,29 +34,45 @@ function AppPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-white">
       <Toaster richColors position="top-right" />
-      <header className="border-b bg-white">
-        <div className="mx-auto max-w-7xl flex items-center justify-between px-6 py-3">
+      <header className="border-b border-primary/20 bg-primary text-primary-foreground shadow-sm">
+        <div className="mx-auto max-w-[1400px] flex items-center justify-between px-8 py-3">
+          {/* FINKI brand */}
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-md bg-primary text-primary-foreground grid place-items-center font-bold text-sm">
-              S
+            <div className="h-11 w-11 rounded-md bg-white text-primary grid place-items-center font-extrabold text-lg shadow-sm">
+              F
             </div>
-            <div>
-              <div className="font-semibold text-sm leading-tight">STGS</div>
-              <div className="text-xs text-muted-foreground leading-tight">Scientific Travel Grant System</div>
+            <div className="leading-tight">
+              <div className="font-extrabold text-lg tracking-wide">FINKI</div>
+              <div className="text-[11px] uppercase tracking-[0.2em] text-white/80">STGS</div>
             </div>
           </div>
+
+          {/* System name */}
+          <div className="hidden md:block text-center">
+            <div className="text-sm font-semibold tracking-wide">Scientific Travel Grant System</div>
+            <div className="text-[11px] text-white/70">Faculty Administration Portal</div>
+          </div>
+
+          {/* User + logout */}
           <div className="flex items-center gap-4">
-            <div className="text-right">
-              <div className="text-sm font-medium">{user.name}</div>
-              <div className="text-xs text-muted-foreground">{ROLE_LABELS[user.role as Role]}</div>
+            <div className="text-right leading-tight">
+              <div className="text-sm font-semibold">{user.name}</div>
+              <div className="text-[11px] text-white/75">{ROLE_LABELS[user.role as Role]}</div>
             </div>
-            <Button variant="outline" size="sm" onClick={logout}>Sign out</Button>
+            <div className="h-9 w-9 rounded-full bg-white/15 grid place-items-center text-sm font-semibold">
+              {user.name.split(" ").map((p) => p[0]).slice(0, 2).join("")}
+            </div>
+            <Button variant="secondary" size="sm" onClick={logout} className="gap-1.5">
+              <LogOut className="h-3.5 w-3.5" />
+              Sign out
+            </Button>
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-7xl px-6 py-8">
+
+      <main className="mx-auto max-w-[1400px] px-8 py-8">
         <RoleView role={user.role as Role} user={user} />
       </main>
     </div>

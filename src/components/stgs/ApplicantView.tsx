@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -229,10 +229,10 @@ function NewApplicationDialog({
 
 function useCountdown(deadlineISO: string) {
   const [now, setNow] = useState(Date.now());
-  useState(() => {
+  useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
-  });
+  }, []);
   const ms = new Date(deadlineISO).getTime() - now;
   const expired = ms <= 0;
   const h = Math.floor(Math.abs(ms) / 3600000);

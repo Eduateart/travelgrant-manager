@@ -8,8 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import {
+  appendHistory,
   getApplications,
   newId,
+  pushNotification,
+  transitionApplication,
   upsertApplication,
   useStore,
   type CurrentUser,

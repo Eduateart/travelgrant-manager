@@ -6,17 +6,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Printer } from "lucide-react";
 import { toast } from "sonner";
 import {
   getApplications,
   getSettings,
+  getUser,
   saveSettings,
-  upsertApplication,
+  transitionApplication,
   useStore,
 } from "@/lib/stgs/store";
 import type { Application } from "@/lib/stgs/types";
 import { calculateCashAdvance, hoursBetween, perDiemMultiplier } from "@/lib/stgs/perdiem";
 import { StatusBadge, fmtMKD } from "./shared";
+import { downloadPaymentXml } from "@/lib/stgs/xml";
 
 export function FinanceView() {
   const settings = useStore(() => getSettings());

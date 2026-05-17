@@ -280,19 +280,30 @@ function PostTravelReportDialog({ app, onClose }: { app: Application; onClose: (
       toast.error("Enter actual expenses");
       return;
     }
-    const updated: Application = {
-      ...app,
-      status: "reconciliation",
-      travelReport: {
-        submittedAt: new Date().toISOString(),
-        actualExpenses: Number(actual),
-        notes,
-        fileName,
-        reportDeadline: deadline,
-        late: false,
-      },
-    };
-    upsertApplication(updated);
+    transitionApplication(
+      app,
+      "reconciliation",
+      { name: app.applicantName, role: "applicant" },
+      {
+        action: "Travel report submitted",
+        note: notes,
+        mutate: (x) => ({
+          ...x,
+          travelReport: {
+            submittedAt: new Date().toISOString(),
+            actualExpenses: Number(actual),
+            notes,
+            fileName,
+            reportDeadline: deadline,
+            late: false,
+          },
+        }),
+        notify: {
+          message: `Travel report submitted for ${app.id} — awaiting reconciliation`,
+          forRole: "finance",
+        },
+      }
+    );
     toast.success("Travel report submitted. Sent to Finance for reconciliation.");
     onClose();
   }

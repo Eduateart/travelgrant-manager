@@ -7,7 +7,17 @@ import { setUser } from "@/lib/stgs/store";
 import { ROLE_LABELS, type Role } from "@/lib/stgs/types";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
-import { GraduationCap, ShieldCheck, Wallet, Users, FileText } from "lucide-react";
+import { GraduationCap, ShieldCheck, Wallet, Users, FileText, ChevronRight, Send, ClipboardCheck, Stamp, Banknote, Plane, Scale, Archive } from "lucide-react";
+
+const WORKFLOW_STEPS: { icon: React.ComponentType<{ className?: string }>; label: string; sub: string }[] = [
+  { icon: Send, label: "Application", sub: "Applicant submits" },
+  { icon: ClipboardCheck, label: "Council Review", sub: "Scientific Council" },
+  { icon: Stamp, label: "Dean Approval", sub: "Dean's Office" },
+  { icon: Banknote, label: "Cash Advance", sub: "Finance issues" },
+  { icon: Plane, label: "Travel", sub: "Trip & report (48h)" },
+  { icon: Scale, label: "Reconciliation", sub: "Finance balances" },
+  { icon: Archive, label: "Closed", sub: "HR archives" },
+];
 
 export const Route = createFileRoute("/")({
   head: () => ({

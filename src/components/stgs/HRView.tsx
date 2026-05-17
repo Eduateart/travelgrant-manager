@@ -59,7 +59,9 @@ function AppTable({ rows, archive = false }: { rows: ReturnType<typeof getApplic
             <TableBody>
               {rows.map((a) => (
                 <TableRow key={a.id}>
-                  <TableCell className="font-mono text-xs">{a.id}</TableCell>
+                  <TableCell className="font-mono text-xs">
+                    <Link to="/app/$id" params={{ id: a.id }} className="text-primary hover:underline">{a.id}</Link>
+                  </TableCell>
                   <TableCell>{a.applicantName}</TableCell>
                   <TableCell>{a.destination}</TableCell>
                   <TableCell className="max-w-[220px] truncate">{a.conferenceName}</TableCell>

@@ -61,7 +61,9 @@ export function ApplicantView({ user }: { user: CurrentUser }) {
               <TableBody>
                 {apps.map((a) => (
                   <TableRow key={a.id}>
-                    <TableCell className="font-mono text-xs">{a.id}</TableCell>
+                    <TableCell className="font-mono text-xs">
+                      <Link to="/app/$id" params={{ id: a.id }} className="text-primary hover:underline">{a.id}</Link>
+                    </TableCell>
                     <TableCell>{a.destination}</TableCell>
                     <TableCell className="max-w-[200px] truncate">{a.conferenceName}</TableCell>
                     <TableCell className="text-xs">

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import type { Application, Role, Settings } from "./types";
+import type { Application, HistoryEntry, Notification, Role, Settings, Status } from "./types";
 
 const APPS_KEY = "stgs.applications";
 const SETTINGS_KEY = "stgs.settings";
 const USER_KEY = "stgs.user";
+const NOTIFS_KEY = "stgs.notifications";
 
 const DEFAULT_SETTINGS: Settings = {
   annualBudget: 100000,

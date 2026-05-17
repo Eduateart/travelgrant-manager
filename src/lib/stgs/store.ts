@@ -5,6 +5,7 @@ const APPS_KEY = "stgs.applications";
 const SETTINGS_KEY = "stgs.settings";
 const USER_KEY = "stgs.user";
 const NOTIFS_KEY = "stgs.notifications";
+const EMAILS_KEY = "stgs.emails";
 
 const DEFAULT_SETTINGS: Settings = {
   annualBudget: 100000,
@@ -163,8 +164,81 @@ export function transitionApplication(
       forUser: options.notify.forUser,
       forRole: options.notify.forRole,
     });
+    logEmail({
+      applicationId: next.id,
+      recipientName: options.notify.forUser ?? (options.notify.forRole ? `${options.notify.forRole} group` : "all-staff"),
+      recipientEmail: emailFor(options.notify.forUser, options.notify.forRole),
+      subject: emailSubjectFor(next.id, options.action ?? options.notify.message),
+      body: options.notify.message,
+      triggeredBy: `${actor.name} (${actor.role})`,
+    });
   }
   return next;
+}
+
+// ----- Email log (simulated) -----
+
+export interface EmailLogEntry {
+  id: string;
+  at: string;
+  applicationId?: string;
+  recipientName: string;
+  recipientEmail: string;
+  subject: string;
+  body: string;
+  triggeredBy: string;
+}
+
+const FINKI_DOMAIN = "finki.ukim.mk";
+const ROLE_MAILBOXES: Record<string, string> = {
+  applicant: "applicant",
+  council: "council",
+  dean: "dean.office",
+  finance: "finance",
+  hr: "hr",
+};
+
+function slugifyName(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, "")
+    .trim()
+    .split(/\s+/)
+    .join(".");
+}
+
+function emailFor(userName?: string, role?: Role): string {
+  if (userName) return `${slugifyName(userName) || "user"}@${FINKI_DOMAIN}`;
+  if (role) return `${ROLE_MAILBOXES[role] ?? role}@${FINKI_DOMAIN}`;
+  return `noreply@${FINKI_DOMAIN}`;
+}
+
+function emailSubjectFor(appId: string, action: string): string {
+  const clean = action.replace(/\s*→\s*/g, " → ").trim();
+  return `[STGS] ${appId} — ${clean}`;
+}
+
+export function getEmailLog(): EmailLogEntry[] {
+  return read<EmailLogEntry[]>(EMAILS_KEY, []);
+}
+export function logEmail(e: Omit<EmailLogEntry, "id" | "at"> & { at?: string }) {
+  const all = getEmailLog();
+  all.unshift({
+    id: "EM-" + Math.random().toString(36).slice(2, 8).toUpperCase(),
+    at: e.at ?? new Date().toISOString(),
+    applicationId: e.applicationId,
+    recipientName: e.recipientName,
+    recipientEmail: e.recipientEmail,
+    subject: e.subject,
+    body: e.body,
+    triggeredBy: e.triggeredBy,
+  });
+  write(EMAILS_KEY, all.slice(0, 500));
+}
+export function clearEmailLog() {
+  write(EMAILS_KEY, []);
 }
 
 // Budget helpers

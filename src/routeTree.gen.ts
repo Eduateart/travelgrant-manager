@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppEmailsRouteImport } from './routes/app.emails'
 import { Route as AppIdRouteImport } from './routes/app.$id'
 
 const AppRoute = AppRouteImport.update({
@@ -29,6 +30,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppEmailsRoute = AppEmailsRouteImport.update({
+  id: '/emails',
+  path: '/emails',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppIdRoute = AppIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -39,11 +45,13 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/$id': typeof AppIdRoute
+  '/app/emails': typeof AppEmailsRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app/$id': typeof AppIdRoute
+  '/app/emails': typeof AppEmailsRoute
   '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
@@ -51,14 +59,15 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/app/$id': typeof AppIdRoute
+  '/app/emails': typeof AppEmailsRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/app' | '/app/$id' | '/app/'
+  fullPaths: '/' | '/app' | '/app/$id' | '/app/emails' | '/app/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/app/$id' | '/app'
-  id: '__root__' | '/' | '/app' | '/app/$id' | '/app/'
+  to: '/' | '/app/$id' | '/app/emails' | '/app'
+  id: '__root__' | '/' | '/app' | '/app/$id' | '/app/emails' | '/app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -89,6 +98,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/emails': {
+      id: '/app/emails'
+      path: '/emails'
+      fullPath: '/app/emails'
+      preLoaderRoute: typeof AppEmailsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/$id': {
       id: '/app/$id'
       path: '/$id'
@@ -101,11 +117,13 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppIdRoute: typeof AppIdRoute
+  AppEmailsRoute: typeof AppEmailsRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppIdRoute: AppIdRoute,
+  AppEmailsRoute: AppEmailsRoute,
   AppIndexRoute: AppIndexRoute,
 }
 

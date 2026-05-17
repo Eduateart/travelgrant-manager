@@ -120,7 +120,9 @@ export function FinanceView() {
                       const delta = adv - act;
                       return (
                         <TableRow key={a.id}>
-                          <TableCell className="font-mono text-xs">{a.id}</TableCell>
+                          <TableCell className="font-mono text-xs">
+                            <Link to="/app/$id" params={{ id: a.id }} className="text-primary hover:underline">{a.id}</Link>
+                          </TableCell>
                           <TableCell>{a.applicantName}</TableCell>
                           <TableCell>{fmtMKD(adv)}</TableCell>
                           <TableCell>{fmtMKD(act)}</TableCell>

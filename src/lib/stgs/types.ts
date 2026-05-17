@@ -66,6 +66,26 @@ export interface Reconciliation {
   paymentConfirmationId: string;
 }
 
+export interface HistoryEntry {
+  at: string;
+  actorName: string;
+  actorRole: Role | "system";
+  action: string;
+  fromStatus?: Status;
+  toStatus?: Status;
+  note?: string;
+}
+
+export interface Notification {
+  id: string;
+  at: string;
+  message: string;
+  applicationId?: string;
+  forUser?: string; // applicant name
+  forRole?: Role;
+  read: boolean;
+}
+
 export interface Application {
   id: string;
   applicantName: string;

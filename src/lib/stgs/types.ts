@@ -106,6 +106,7 @@ export interface Application {
   cashAdvance?: CashAdvance;
   travelReport?: TravelReport;
   reconciliation?: Reconciliation;
+  history?: HistoryEntry[];
 }
 
 export interface Settings {

@@ -134,23 +134,42 @@ function NewApplicationDialog({
       toast.error("End date must be after start date");
       return;
     }
-    const app: Application = {
-      id: newId(),
-      applicantName: user.name,
-      destination,
-      conferenceName,
-      startDate,
-      endDate,
-      estimatedBudget: Number(budget),
-      mealsCoveredByConference: mealsCovered,
-      mealsCoveredAmount: Number(mealsAmount) || 0,
-      accommodationCoveredByConference: accomCovered,
-      accommodationCoveredAmount: Number(accomAmount) || 0,
-      documentName: fileName,
-      submittedAt: new Date().toISOString(),
-      status: "pending_council",
-    };
+    const app: Application = appendHistory(
+      {
+        id: newId(),
+        applicantName: user.name,
+        destination,
+        conferenceName,
+        startDate,
+        endDate,
+        estimatedBudget: Number(budget),
+        mealsCoveredByConference: mealsCovered,
+        mealsCoveredAmount: Number(mealsAmount) || 0,
+        accommodationCoveredByConference: accomCovered,
+        accommodationCoveredAmount: Number(accomAmount) || 0,
+        documentName: fileName,
+        submittedAt: new Date().toISOString(),
+        status: "pending_council",
+      },
+      {
+        at: new Date().toISOString(),
+        actorName: user.name,
+        actorRole: "applicant",
+        action: "Application submitted",
+        toStatus: "pending_council",
+      }
+    );
     upsertApplication(app);
+    pushNotification({
+      message: `New application ${app.id} submitted by ${user.name}`,
+      applicationId: app.id,
+      forRole: "council",
+    });
+    pushNotification({
+      message: `Your application ${app.id} was submitted and is awaiting Council review`,
+      applicationId: app.id,
+      forUser: user.name,
+    });
     toast.success("Application submitted and locked");
     reset();
     onOpenChange(false);

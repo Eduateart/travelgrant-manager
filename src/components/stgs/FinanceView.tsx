@@ -159,14 +159,20 @@ function CashAdvanceDialog({
   const preview = calculateCashAdvance(app, dailyRate, Number(fee) || 0);
 
   function issue() {
-    const updated: Application = {
-      ...app,
-      status: "cash_advance_issued",
-      cashAdvance: preview,
-    };
-    // Then auto-move to pending_report (awaiting return)
-    updated.status = "pending_report";
-    upsertApplication(updated);
+    const user = getUser();
+    transitionApplication(
+      app,
+      "pending_report",
+      { name: user?.name ?? "Finance", role: "finance" },
+      {
+        action: `Cash advance issued (${fmtMKD(preview.total)})`,
+        mutate: (x) => ({ ...x, cashAdvance: preview }),
+        notify: {
+          message: `Cash advance of ${fmtMKD(preview.total)} issued for ${app.id}`,
+          forUser: app.applicantName,
+        },
+      }
+    );
     toast.success(`Cash advance of ${fmtMKD(preview.total)} issued`);
     onClose();
   }

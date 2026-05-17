@@ -7,7 +7,17 @@ import { setUser } from "@/lib/stgs/store";
 import { ROLE_LABELS, type Role } from "@/lib/stgs/types";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
-import { GraduationCap, ShieldCheck, Wallet, Users, FileText } from "lucide-react";
+import { GraduationCap, ShieldCheck, Wallet, Users, FileText, ChevronRight, Send, ClipboardCheck, Stamp, Banknote, Plane, Scale, Archive } from "lucide-react";
+
+const WORKFLOW_STEPS: { icon: React.ComponentType<{ className?: string }>; label: string; sub: string }[] = [
+  { icon: Send, label: "Application", sub: "Applicant submits" },
+  { icon: ClipboardCheck, label: "Council Review", sub: "Scientific Council" },
+  { icon: Stamp, label: "Dean Approval", sub: "Dean's Office" },
+  { icon: Banknote, label: "Cash Advance", sub: "Finance issues" },
+  { icon: Plane, label: "Travel", sub: "Trip & report (48h)" },
+  { icon: Scale, label: "Reconciliation", sub: "Finance balances" },
+  { icon: Archive, label: "Closed", sub: "HR archives" },
+];
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -160,6 +170,49 @@ function LoginPage() {
                 Demo environment · Data persists in your browser only
               </p>
             </div>
+          </div>
+        </div>
+
+        {/* Workflow diagram */}
+        <div className="w-full max-w-[1100px] mt-10">
+          <div className="bg-white rounded-xl border shadow-sm p-6 lg:p-8">
+            <div className="flex items-baseline justify-between mb-5 flex-wrap gap-2">
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-foreground">
+                Grant Lifecycle
+              </h3>
+              <span className="text-[11px] text-muted-foreground">
+                From submission through reconciliation
+              </span>
+            </div>
+            <ol className="flex flex-wrap items-stretch gap-y-4 gap-x-1">
+              {WORKFLOW_STEPS.map((step, i) => {
+                const Icon = step.icon;
+                const isLast = i === WORKFLOW_STEPS.length - 1;
+                return (
+                  <li key={step.label} className="flex items-center min-w-0 flex-1 basis-[140px]">
+                    <div className="flex flex-col items-center text-center px-1 min-w-0 w-full">
+                      <div className="relative">
+                        <div className="h-11 w-11 rounded-full bg-primary text-primary-foreground grid place-items-center shadow-sm ring-4 ring-blue-50">
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-white border border-primary text-primary text-[10px] font-bold grid place-items-center">
+                          {i + 1}
+                        </div>
+                      </div>
+                      <div className="mt-2 text-xs font-semibold text-foreground leading-tight">
+                        {step.label}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">
+                        {step.sub}
+                      </div>
+                    </div>
+                    {!isLast && (
+                      <ChevronRight className="h-4 w-4 text-primary/40 shrink-0 hidden sm:block" />
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
           </div>
         </div>
       </div>

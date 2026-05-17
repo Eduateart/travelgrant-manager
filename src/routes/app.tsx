@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
-import { LogOut } from "lucide-react";
+import { LogOut, Mail } from "lucide-react";
 import { getUser, setUser, useStore } from "@/lib/stgs/store";
 import { ROLE_LABELS, type Role } from "@/lib/stgs/types";
 import { NotificationsBell } from "@/components/stgs/NotificationsBell";
@@ -53,6 +53,17 @@ function AppLayout() {
           </div>
 
           <div className="flex items-center gap-3">
+            {(user.role === "dean" || user.role === "hr") && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => navigate({ to: "/app/emails" })}
+                className="gap-1.5"
+              >
+                <Mail className="h-3.5 w-3.5" />
+                Email log
+              </Button>
+            )}
             <NotificationsBell user={user} />
             <div className="text-right leading-tight">
               <div className="text-sm font-semibold">{user.name}</div>

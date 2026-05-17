@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,8 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import {
+  appendHistory,
   getApplications,
   newId,
+  pushNotification,
+  transitionApplication,
   upsertApplication,
   useStore,
   type CurrentUser,
@@ -57,7 +61,9 @@ export function ApplicantView({ user }: { user: CurrentUser }) {
               <TableBody>
                 {apps.map((a) => (
                   <TableRow key={a.id}>
-                    <TableCell className="font-mono text-xs">{a.id}</TableCell>
+                    <TableCell className="font-mono text-xs">
+                      <Link to="/app/$id" params={{ id: a.id }} className="text-primary hover:underline">{a.id}</Link>
+                    </TableCell>
                     <TableCell>{a.destination}</TableCell>
                     <TableCell className="max-w-[200px] truncate">{a.conferenceName}</TableCell>
                     <TableCell className="text-xs">
@@ -131,23 +137,42 @@ function NewApplicationDialog({
       toast.error("End date must be after start date");
       return;
     }
-    const app: Application = {
-      id: newId(),
-      applicantName: user.name,
-      destination,
-      conferenceName,
-      startDate,
-      endDate,
-      estimatedBudget: Number(budget),
-      mealsCoveredByConference: mealsCovered,
-      mealsCoveredAmount: Number(mealsAmount) || 0,
-      accommodationCoveredByConference: accomCovered,
-      accommodationCoveredAmount: Number(accomAmount) || 0,
-      documentName: fileName,
-      submittedAt: new Date().toISOString(),
-      status: "pending_council",
-    };
+    const app: Application = appendHistory(
+      {
+        id: newId(),
+        applicantName: user.name,
+        destination,
+        conferenceName,
+        startDate,
+        endDate,
+        estimatedBudget: Number(budget),
+        mealsCoveredByConference: mealsCovered,
+        mealsCoveredAmount: Number(mealsAmount) || 0,
+        accommodationCoveredByConference: accomCovered,
+        accommodationCoveredAmount: Number(accomAmount) || 0,
+        documentName: fileName,
+        submittedAt: new Date().toISOString(),
+        status: "pending_council",
+      },
+      {
+        at: new Date().toISOString(),
+        actorName: user.name,
+        actorRole: "applicant",
+        action: "Application submitted",
+        toStatus: "pending_council",
+      }
+    );
     upsertApplication(app);
+    pushNotification({
+      message: `New application ${app.id} submitted by ${user.name}`,
+      applicationId: app.id,
+      forRole: "council",
+    });
+    pushNotification({
+      message: `Your application ${app.id} was submitted and is awaiting Council review`,
+      applicationId: app.id,
+      forUser: user.name,
+    });
     toast.success("Application submitted and locked");
     reset();
     onOpenChange(false);
@@ -258,19 +283,30 @@ function PostTravelReportDialog({ app, onClose }: { app: Application; onClose: (
       toast.error("Enter actual expenses");
       return;
     }
-    const updated: Application = {
-      ...app,
-      status: "reconciliation",
-      travelReport: {
-        submittedAt: new Date().toISOString(),
-        actualExpenses: Number(actual),
-        notes,
-        fileName,
-        reportDeadline: deadline,
-        late: false,
-      },
-    };
-    upsertApplication(updated);
+    transitionApplication(
+      app,
+      "reconciliation",
+      { name: app.applicantName, role: "applicant" },
+      {
+        action: "Travel report submitted",
+        note: notes,
+        mutate: (x) => ({
+          ...x,
+          travelReport: {
+            submittedAt: new Date().toISOString(),
+            actualExpenses: Number(actual),
+            notes,
+            fileName,
+            reportDeadline: deadline,
+            late: false,
+          },
+        }),
+        notify: {
+          message: `Travel report submitted for ${app.id} — awaiting reconciliation`,
+          forRole: "finance",
+        },
+      }
+    );
     toast.success("Travel report submitted. Sent to Finance for reconciliation.");
     onClose();
   }

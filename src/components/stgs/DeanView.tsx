@@ -7,7 +7,9 @@ import {
   budgetSummary,
   getApplications,
   getSettings,
+  getUser,
   saveSettings,
+  transitionApplication,
   useStore,
 } from "@/lib/stgs/store";
 import { ReviewQueue } from "./ReviewQueue";
@@ -76,21 +78,48 @@ export function DeanView() {
         filterStatus="pending_dean"
         decisionLabel="Decision"
         onApprove={(a) => {
+          const user = getUser();
           if (blocked) {
             toast.error("Budget exhausted — cannot approve");
             return a;
           }
-          return {
-            ...a,
-            status: "approved",
-            deanDecision: { approved: true, reason: "Approved", at: new Date().toISOString() },
-          };
+          return transitionApplication(
+            a,
+            "approved",
+            { name: user?.name ?? "Dean", role: "dean" },
+            {
+              action: "Dean approved",
+              mutate: (x) => ({
+                ...x,
+                deanDecision: { approved: true, reason: "Approved", at: new Date().toISOString() },
+              }),
+              notify: {
+                message: `Your application ${a.id} was approved by the Dean's Office`,
+                forUser: a.applicantName,
+              },
+            }
+          );
         }}
-        onReject={(a, reason) => ({
-          ...a,
-          status: "rejected",
-          deanDecision: { approved: false, reason, at: new Date().toISOString() },
-        })}
+        onReject={(a, reason) => {
+          const user = getUser();
+          return transitionApplication(
+            a,
+            "rejected",
+            { name: user?.name ?? "Dean", role: "dean" },
+            {
+              action: "Dean rejected",
+              note: reason,
+              mutate: (x) => ({
+                ...x,
+                deanDecision: { approved: false, reason, at: new Date().toISOString() },
+              }),
+              notify: {
+                message: `Your application ${a.id} was rejected by the Dean's Office`,
+                forUser: a.applicantName,
+              },
+            }
+          );
+        }}
       />
 
       <RecentDecisions apps={apps} />

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,17 +7,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Printer } from "lucide-react";
 import { toast } from "sonner";
 import {
   getApplications,
   getSettings,
+  getUser,
   saveSettings,
-  upsertApplication,
+  transitionApplication,
   useStore,
 } from "@/lib/stgs/store";
 import type { Application } from "@/lib/stgs/types";
 import { calculateCashAdvance, hoursBetween, perDiemMultiplier } from "@/lib/stgs/perdiem";
 import { StatusBadge, fmtMKD } from "./shared";
+import { downloadPaymentXml } from "@/lib/stgs/xml";
 
 export function FinanceView() {
   const settings = useStore(() => getSettings());
@@ -78,7 +82,9 @@ export function FinanceView() {
                       const h = hoursBetween(a.startDate, a.endDate);
                       return (
                         <TableRow key={a.id}>
-                          <TableCell className="font-mono text-xs">{a.id}</TableCell>
+                          <TableCell className="font-mono text-xs">
+                            <Link to="/app/$id" params={{ id: a.id }} className="text-primary hover:underline">{a.id}</Link>
+                          </TableCell>
                           <TableCell>{a.applicantName}</TableCell>
                           <TableCell>{a.destination}</TableCell>
                           <TableCell>{h.toFixed(1)}h ({(perDiemMultiplier(h) * 100).toFixed(0)}%)</TableCell>
@@ -114,7 +120,9 @@ export function FinanceView() {
                       const delta = adv - act;
                       return (
                         <TableRow key={a.id}>
-                          <TableCell className="font-mono text-xs">{a.id}</TableCell>
+                          <TableCell className="font-mono text-xs">
+                            <Link to="/app/$id" params={{ id: a.id }} className="text-primary hover:underline">{a.id}</Link>
+                          </TableCell>
                           <TableCell>{a.applicantName}</TableCell>
                           <TableCell>{fmtMKD(adv)}</TableCell>
                           <TableCell>{fmtMKD(act)}</TableCell>
@@ -156,14 +164,20 @@ function CashAdvanceDialog({
   const preview = calculateCashAdvance(app, dailyRate, Number(fee) || 0);
 
   function issue() {
-    const updated: Application = {
-      ...app,
-      status: "cash_advance_issued",
-      cashAdvance: preview,
-    };
-    // Then auto-move to pending_report (awaiting return)
-    updated.status = "pending_report";
-    upsertApplication(updated);
+    const user = getUser();
+    transitionApplication(
+      app,
+      "pending_report",
+      { name: user?.name ?? "Finance", role: "finance" },
+      {
+        action: `Cash advance issued (${fmtMKD(preview.total)})`,
+        mutate: (x) => ({ ...x, cashAdvance: preview }),
+        notify: {
+          message: `Cash advance of ${fmtMKD(preview.total)} issued for ${app.id}`,
+          forUser: app.applicantName,
+        },
+      }
+    );
     toast.success(`Cash advance of ${fmtMKD(preview.total)} issued`);
     onClose();
   }
@@ -203,20 +217,43 @@ function ReconcileDialog({ app, onClose }: { app: Application; onClose: () => vo
   const act = app.travelReport?.actualExpenses ?? 0;
   const delta = adv - act;
 
-  function confirm() {
+  function confirm(): Application {
     const id = "PAY-" + Math.random().toString(36).slice(2, 8).toUpperCase();
-    upsertApplication({
-      ...app,
-      status: "closed",
-      reconciliation: {
-        cashAdvance: adv,
-        actualExpenses: act,
-        balance: delta,
-        confirmedAt: new Date().toISOString(),
-        paymentConfirmationId: id,
-      },
-    });
+    const user = getUser();
+    const closed = transitionApplication(
+      app,
+      "closed",
+      { name: user?.name ?? "Finance", role: "finance" },
+      {
+        action: `Reconciled — ${id}`,
+        mutate: (x) => ({
+          ...x,
+          reconciliation: {
+            cashAdvance: adv,
+            actualExpenses: act,
+            balance: delta,
+            confirmedAt: new Date().toISOString(),
+            paymentConfirmationId: id,
+          },
+        }),
+        notify: {
+          message: `Application ${app.id} reconciled — payment confirmation ${id}`,
+          forUser: app.applicantName,
+        },
+      }
+    );
     toast.success(`Reconciled · Payment confirmation ${id}`);
+    return closed;
+  }
+
+  function confirmAndClose() {
+    confirm();
+    onClose();
+  }
+
+  function confirmAndExport() {
+    const updated = confirm();
+    downloadPaymentXml(updated);
     onClose();
   }
 
@@ -237,9 +274,12 @@ function ReconcileDialog({ app, onClose }: { app: Application; onClose: () => vo
             <p className="text-xs text-muted-foreground pt-2">Notes: {app.travelReport.notes}</p>
           )}
         </div>
-        <DialogFooter>
+        <DialogFooter className="gap-2 sm:gap-2">
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={confirm}>Generate Payment Confirmation</Button>
+          <Button variant="secondary" onClick={confirmAndExport} className="gap-1.5">
+            <Printer className="h-3.5 w-3.5" /> Confirm &amp; Export XML
+          </Button>
+          <Button onClick={confirmAndClose}>Generate Payment Confirmation</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

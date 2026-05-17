@@ -212,20 +212,43 @@ function ReconcileDialog({ app, onClose }: { app: Application; onClose: () => vo
   const act = app.travelReport?.actualExpenses ?? 0;
   const delta = adv - act;
 
-  function confirm() {
+  function confirm(): Application {
     const id = "PAY-" + Math.random().toString(36).slice(2, 8).toUpperCase();
-    upsertApplication({
-      ...app,
-      status: "closed",
-      reconciliation: {
-        cashAdvance: adv,
-        actualExpenses: act,
-        balance: delta,
-        confirmedAt: new Date().toISOString(),
-        paymentConfirmationId: id,
-      },
-    });
+    const user = getUser();
+    const closed = transitionApplication(
+      app,
+      "closed",
+      { name: user?.name ?? "Finance", role: "finance" },
+      {
+        action: `Reconciled — ${id}`,
+        mutate: (x) => ({
+          ...x,
+          reconciliation: {
+            cashAdvance: adv,
+            actualExpenses: act,
+            balance: delta,
+            confirmedAt: new Date().toISOString(),
+            paymentConfirmationId: id,
+          },
+        }),
+        notify: {
+          message: `Application ${app.id} reconciled — payment confirmation ${id}`,
+          forUser: app.applicantName,
+        },
+      }
+    );
     toast.success(`Reconciled · Payment confirmation ${id}`);
+    return closed;
+  }
+
+  function confirmAndClose() {
+    confirm();
+    onClose();
+  }
+
+  function confirmAndExport() {
+    const updated = confirm();
+    downloadPaymentXml(updated);
     onClose();
   }
 
@@ -246,9 +269,12 @@ function ReconcileDialog({ app, onClose }: { app: Application; onClose: () => vo
             <p className="text-xs text-muted-foreground pt-2">Notes: {app.travelReport.notes}</p>
           )}
         </div>
-        <DialogFooter>
+        <DialogFooter className="gap-2 sm:gap-2">
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={confirm}>Generate Payment Confirmation</Button>
+          <Button variant="secondary" onClick={confirmAndExport} className="gap-1.5">
+            <Printer className="h-3.5 w-3.5" /> Confirm &amp; Export XML
+          </Button>
+          <Button onClick={confirmAndClose}>Generate Payment Confirmation</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -259,27 +259,27 @@ function ReconcileDialog({ app, onClose }: { app: Application; onClose: () => vo
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Reconciliation — {app.id}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-2 text-sm">
+        <div className="space-y-2 text-sm min-w-0">
           <Row k="Cash advance" v={fmtMKD(adv)} />
           <Row k="Actual expenses" v={fmtMKD(act)} />
-          <div className="border-t pt-2 mt-2 flex items-center justify-between font-semibold">
-            <span>{delta >= 0 ? "Applicant returns to faculty" : "Faculty owes applicant"}</span>
-            <span className={delta >= 0 ? "text-emerald-600" : "text-red-600"}>{fmtMKD(Math.abs(delta))}</span>
+          <div className="border-t pt-2 mt-2 flex items-center justify-between gap-3 font-semibold min-w-0">
+            <span className="min-w-0 break-words">{delta >= 0 ? "Applicant returns to faculty" : "Faculty owes applicant"}</span>
+            <span className={`whitespace-nowrap ${delta >= 0 ? "text-emerald-600" : "text-red-600"}`}>{fmtMKD(Math.abs(delta))}</span>
           </div>
           {app.travelReport?.notes && (
-            <p className="text-xs text-muted-foreground pt-2">Notes: {app.travelReport.notes}</p>
+            <p className="text-xs text-muted-foreground pt-2 break-words">Notes: {app.travelReport.notes}</p>
           )}
         </div>
-        <DialogFooter className="gap-2 sm:gap-2">
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button variant="secondary" onClick={confirmAndExport} className="gap-1.5">
+        <DialogFooter className="flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
+          <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">Cancel</Button>
+          <Button variant="secondary" onClick={confirmAndExport} className="w-full sm:w-auto gap-1.5">
             <Printer className="h-3.5 w-3.5" /> Confirm &amp; Export XML
           </Button>
-          <Button onClick={confirmAndClose}>Generate Payment Confirmation</Button>
+          <Button onClick={confirmAndClose} className="w-full sm:w-auto">Generate Payment Confirmation</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

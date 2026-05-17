@@ -82,7 +82,9 @@ export function FinanceView() {
                       const h = hoursBetween(a.startDate, a.endDate);
                       return (
                         <TableRow key={a.id}>
-                          <TableCell className="font-mono text-xs">{a.id}</TableCell>
+                          <TableCell className="font-mono text-xs">
+                            <Link to="/app/$id" params={{ id: a.id }} className="text-primary hover:underline">{a.id}</Link>
+                          </TableCell>
                           <TableCell>{a.applicantName}</TableCell>
                           <TableCell>{a.destination}</TableCell>
                           <TableCell>{h.toFixed(1)}h ({(perDiemMultiplier(h) * 100).toFixed(0)}%)</TableCell>
